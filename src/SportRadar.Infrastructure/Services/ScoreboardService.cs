@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SportRadar.Infrastructure.Contracts;
 using SportRadar.Infrastructure.Models;
+using System.Text.RegularExpressions;
 
 namespace SportRadar.Infrastructure.Services
 {
@@ -27,9 +28,9 @@ namespace SportRadar.Infrastructure.Services
         public List<IFootballMatch> GetSummary()
         {
             return _matches.Values
-                .OrderByDescending(x => x.TotalScore)
-                    .ThenBy(x => x.StartTime)
-                        .ToList();
+                .OrderByDescending(match => match.TotalScore)
+                .ThenByDescending(match => match.StartTime)
+                .ToList();
         }
 
         public void StartMatch(MatchDto request)

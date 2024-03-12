@@ -1,5 +1,7 @@
+using Microsoft.Extensions.Logging;
 using Moq;
 using SportRadar.Infrastructure.Contracts;
+using SportRadar.Infrastructure.Models;
 using SportRadar.Infrastructure.Services;
 
 namespace SportRadar.Tests
@@ -7,21 +9,26 @@ namespace SportRadar.Tests
     public class ScoreBoardTest
     {
         private readonly Mock<IScoreboard> _mock;
+        private readonly Mock<ILogger<ScoreboardService>> _loggerMock;
         private readonly IScoreboard _scoreboard;
         public ScoreBoardTest()
         {
                 _mock = new Mock<IScoreboard>();
-                _scoreboard = new ScoreboardService();
+                 _loggerMock = new Mock<ILogger<ScoreboardService>>();
+                _scoreboard = new ScoreboardService(_loggerMock.Object);
         }
 
         [Fact]
         public void StartMatch_ShouldAddNewMatchToScoreboard()
         {
+            var request = new MatchDto
+            {
+                HomeTeam = "HomeTeam",
+                AwayTeam = "AwayTeam"
+            };
+            _mock.Setup(x => x.StartMatch(request));
 
-            _mock.Setup(x => x.StartMatch(It.IsAny<string>(), It.IsAny<string>()));
-
-             _scoreboard.StartMatch("HomeTeam", "AwayTeam");
-            _mock.Verify(x => x.StartMatch(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+             _scoreboard.StartMatch(request);
 
             List<IFootballMatch> summary = _scoreboard.GetSummary();
             Assert.Single(summary);
@@ -36,12 +43,37 @@ namespace SportRadar.Tests
         {
 
             // Arrange
+            var request1 = new MatchDto
+            {
+                HomeTeam = "TeamA",
+                AwayTeam = "TeamB"
+            };
 
-            _scoreboard.StartMatch("TeamA", "TeamB");
-            _scoreboard.UpdateScore("TeamA", "TeamB", 2, 1);
+            var updateDto = new UpdateMatchDto
+            {
+                HomeTeam = "TeamA",
+                AwayTeam = "TeamB",
+                HomeTeamScore = 2,
+                AwayTeamScore = 1
+            };
+            _scoreboard.StartMatch(request1);
+            _scoreboard.UpdateScore(updateDto);
 
-            _scoreboard.StartMatch("TeamC", "TeamD");
-            _scoreboard.UpdateScore("TeamC", "TeamD", 1, 2);
+            var request2 = new MatchDto
+            {
+                HomeTeam = "TeamC",
+                AwayTeam = "TeamD"
+            };
+
+            var updateDto2 = new UpdateMatchDto
+            {
+                HomeTeam = "TeamC",
+                AwayTeam = "TeamD",
+                HomeTeamScore = 1,
+                AwayTeamScore = 2
+            };
+            _scoreboard.StartMatch(request2);
+            _scoreboard.UpdateScore(updateDto2);
 
             // Act
             List<IFootballMatch> matches = _scoreboard.GetSummary();
@@ -49,13 +81,13 @@ namespace SportRadar.Tests
             // Assert
             Assert.Equal(2, matches.Count);
 
-            Assert.Equal("TeamC", matches[0].HomeTeam);
-            Assert.Equal("TeamD", matches[0].AwayTeam);
+            Assert.Equal(request2.HomeTeam, matches[0].HomeTeam);
+            Assert.Equal(request2.AwayTeam, matches[0].AwayTeam);
             Assert.Equal(1, matches[0].HomeTeamScore);
             Assert.Equal(2, matches[0].AwayTeamScore);
 
-            Assert.Equal("TeamA", matches[1].HomeTeam);
-            Assert.Equal("TeamB", matches[1].AwayTeam);
+            Assert.Equal(request1.HomeTeam, matches[1].HomeTeam);
+            Assert.Equal(request1.AwayTeam, matches[1].AwayTeam);
             Assert.Equal(2, matches[1].HomeTeamScore);
             Assert.Equal(1, matches[1].AwayTeamScore);
         }
@@ -64,10 +96,15 @@ namespace SportRadar.Tests
         public void FinishMatch_ShouldRemoveMatchFromScoreboard()
         {
             // Arrange
-            _scoreboard.StartMatch("TeamA", "TeamB");
+            var request = new MatchDto
+            {
+                HomeTeam = "TeamA",
+                AwayTeam = "TeamB"
+            };
+            _scoreboard.StartMatch(request);
 
             // Act
-            _scoreboard.FinishMatch("TeamA", "TeamB");
+            _scoreboard.FinishMatch(request);
 
             // Assert
             List<IFootballMatch> matches = _scoreboard.GetSummary();
