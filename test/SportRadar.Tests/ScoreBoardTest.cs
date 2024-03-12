@@ -1,6 +1,6 @@
 namespace SportRadar.Tests
 {
-    public class UnitTest1
+    public class ScoreBoardTest
     {
         [Fact]
         public void Test1()
