@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using SportRadar.Infrastructure.Contracts;
 using SportRadar.Infrastructure.Models;
-using System.Text.RegularExpressions;
 
 namespace SportRadar.Infrastructure.Services
 {
