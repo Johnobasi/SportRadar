@@ -11,7 +11,7 @@ namespace SportRadar.Tests
         public ScoreBoardTest()
         {
                 _mock = new Mock<IScoreboard>();
-                _scoreboard = (IScoreboard)new ScoreboardService();
+                _scoreboard = new ScoreboardService();
         }
 
         [Fact]
